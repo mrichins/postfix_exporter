@@ -366,10 +366,10 @@ func (e *PostfixExporter) CollectFromLogLine(line string) {
 			}
 		case "smtp":
 			if smtpMatches := lmtpPipeSMTPLine.FindStringSubmatch(remainder); smtpMatches != nil {
-				addToHistogramVec(e.smtpDelays, smtpMatches[2], "before_queue_manager", "")
-				addToHistogramVec(e.smtpDelays, smtpMatches[3], "queue_manager", "")
-				addToHistogramVec(e.smtpDelays, smtpMatches[4], "connection_setup", "")
-				addToHistogramVec(e.smtpDelays, smtpMatches[5], "transmission", "")
+				addToHistogramVec(e.smtpDelays, smtpMatches[2], "before_queue_manager", "before_queue_manager", smtpMatches[2])
+				addToHistogramVec(e.smtpDelays, smtpMatches[3], "queue_manager", "queue_manager", smtpMatches[2])
+				addToHistogramVec(e.smtpDelays, smtpMatches[4], "connection_setup", "connection_setup", smtpMatches[2])
+				addToHistogramVec(e.smtpDelays, smtpMatches[5], "transmission", "transmission", smtpMatches[2])
 				if smtpStatusMatches := smtpStatusLine.FindStringSubmatch(remainder); smtpStatusMatches != nil {
 					e.smtpProcesses.WithLabelValues(smtpStatusMatches[1]).Inc()
 					if smtpStatusMatches[1] == "deferred" {
@@ -522,7 +522,7 @@ func NewPostfixExporter(showqPath string, logSrc LogSource, logUnsupportedLines 
 				Help:      "SMTP message processing time in seconds.",
 				Buckets:   timeBuckets,
 			},
-			[]string{"stage"}),
+			[]string{"stage","relay"}),
 		smtpTLSConnects: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: "postfix",
